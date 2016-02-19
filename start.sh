@@ -2,11 +2,19 @@
 
 printenv
 
-export HTTP_IP="127.0.0.1"
-export HTTP_PORT="8080"
-if [ "x${BACKEND_PORT}" != "x" ]; then
-   HTTP_IP=`echo "${BACKEND_PORT}" | sed 's%/%%g' | awk -F: '{ print $2 }'`
-   HTTP_PORT=`echo "${BACKEND_PORT}" | sed 's%/%%g' | awk -F: '{ print $3 }'`
+export V1_IP="127.0.0.1"
+export V1_PORT="8080"
+export V2_IP="127.0.0.1"
+export V2_PORT="8081"
+
+if [ "x${API_V1_PORT}" != "x" ]; then
+   V1_IP=`echo "${API_V1_PORT}" | sed 's%/%%g' | awk -F: '{ print $2 }'`
+   V1_PORT=`echo "${API_V1_PORT}" | sed 's%/%%g' | awk -F: '{ print $3 }'`
+fi
+
+if [ "x${API_V2_PORT}" != "x" ]; then
+   V2_IP=`echo "${API_V2_PORT}" | sed 's%/%%g' | awk -F: '{ print $2 }'`
+   V2_PORT=`echo "${API_V2_PORT}" | sed 's%/%%g' | awk -F: '{ print $3 }'`
 fi
 
 KEYDIR=/etc/ssl
@@ -57,6 +65,9 @@ ServerName ${PUBLIC_HOSTNAME}
         SSLCertificateFile $KEYDIR/certs/${PUBLIC_HOSTNAME}.crt
         ${CHAINSPEC}
         SSLCertificateKeyFile $KEYDIR/private/${PUBLIC_HOSTNAME}.key
+        SSLCACertificateFile /etc/ssl/certs/${PUBLIC_HOSTNAME}-client-ca.crt
+        SSLVerifyClient optional
+        SSLVerifyDepth 1
         DocumentRoot /var/www/
         
         ServerAdmin noc@nordu.net
@@ -77,24 +88,21 @@ ServerName ${PUBLIC_HOSTNAME}
 
         ProxyPreserveHost  On
   	ProxyRequests      Off
-  	ProxyPass          /  http://${HTTP_IP}:${HTTP_PORT}/
-  	ProxyPassReverse   /  http://${HTTP_IP}:${HTTP_PORT}/
+  	ProxyPass          /v1  http://${V1_IP}:${V1_PORT}/v1
+  	ProxyPassReverse   /v1  http://${V1_IP}:${V1_PORT}/v1
+        ProxyPass          /v2  http://${V2_IP}:${V2_PORT}/v2
+        ProxyPassReverse   /v2  http://${V2_IP}:${V2_PORT}/v2
 
         <Location />
            Order deny,allow
            Allow from all
-
            <RequireAll>
+              Require ssl
               <RequireAny>
                  Require method GET
-                 <RequireAll>
-                    SSLVerifyClient require
-                    SSLVerifyDepth 1
-                    SSLCACertificateFile /etc/ssl/certs/${PUBLIC_HOSTNAME}-client-ca.crt
-                 </RequireAll>
+                 Require ssl-verify-client
               </RequireAny>
            </RequireAll>
-
         </Location>
 
 </VirtualHost>
@@ -108,4 +116,5 @@ a2ensite default-ssl
 
 rm -f /var/run/apache2/apache2.pid
 
-exec apache2 -DFOREGROUND
+mkdir -p /var/lock/apache2 /var/run/apache2
+env APACHE_LOCK_DIR=/var/lock/apache2 APACHE_RUN_DIR=/var/run/apache2 APACHE_PID_FILE=/var/run/apache2/apache2.pid APACHE_RUN_USER=www-data APACHE_RUN_GROUP=www-data APACHE_LOG_DIR=/var/log/apache2 apache2 -DFOREGROUND

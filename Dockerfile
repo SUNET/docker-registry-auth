@@ -13,7 +13,7 @@ RUN rm -f /etc/apache2/sites-available/*
 RUN rm -f /etc/apache2/sites-enabled/*
 ADD start.sh /start.sh
 RUN chmod a+rx /start.sh
-ENV PUBLIC_HOSTNAME "www.example.org"
+ENV PUBLIC_HOSTNAME www.example.org
 EXPOSE 443
 EXPOSE 80
 ENTRYPOINT ["/start.sh"]
