@@ -10,3 +10,6 @@ update:
 	docker tag -f $(NAME):$(VERSION) docker.sunet.se/$(NAME):$(VERSION)
 push:
 	docker push docker.sunet.se/$(NAME):$(VERSION)
+stable:
+	docker tag -f $(NAME):stable $(NAME):stable-$(date --rfc-3339='date')
+	docker tag -f $(NAME):$(VERSION) $(NAME):stable

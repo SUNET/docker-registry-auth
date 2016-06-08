@@ -2,15 +2,8 @@
 
 printenv
 
-export V1_IP="127.0.0.1"
-export V1_PORT="8080"
 export V2_IP="127.0.0.1"
 export V2_PORT="8081"
-
-if [ "x${API_V1_PORT}" != "x" ]; then
-   V1_IP=`echo "${API_V1_PORT}" | sed 's%/%%g' | awk -F: '{ print $2 }'`
-   V1_PORT=`echo "${API_V1_PORT}" | sed 's%/%%g' | awk -F: '{ print $3 }'`
-fi
 
 if [ "x${API_V2_PORT}" != "x" ]; then
    V2_IP=`echo "${API_V2_PORT}" | sed 's%/%%g' | awk -F: '{ print $2 }'`
@@ -69,14 +62,14 @@ ServerName ${PUBLIC_HOSTNAME}
         SSLVerifyClient optional
         SSLVerifyDepth 1
         DocumentRoot /var/www/
-        
+
         ServerAdmin noc@nordu.net
 
         Header set Host "${PUBLIC_HOSTNAME}"
         RequestHeader set X-Forwarded-Proto "https"
 
         ProxyRequests On
- 
+
         AddDefaultCharset utf-8
 
         ErrorLog /var/log/apache2/error.log
@@ -87,9 +80,7 @@ ServerName ${PUBLIC_HOSTNAME}
         AddDefaultCharset utf-8
 
         ProxyPreserveHost  On
-  	ProxyRequests      Off
-  	ProxyPass          /v1  http://${V1_IP}:${V1_PORT}/v1
-  	ProxyPassReverse   /v1  http://${V1_IP}:${V1_PORT}/v1
+        ProxyRequests      Off
         ProxyPass          /v2  http://${V2_IP}:${V2_PORT}/v2
         ProxyPassReverse   /v2  http://${V2_IP}:${V2_PORT}/v2
 
@@ -113,6 +104,7 @@ cat /etc/apache2/sites-available/default-ssl.conf
 
 a2ensite default
 a2ensite default-ssl
+a2dismod status
 
 rm -f /var/run/apache2/apache2.pid
 
