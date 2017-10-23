@@ -10,6 +10,41 @@ if [ "x${API_V2_PORT}" != "x" ]; then
    V2_PORT=`echo "${API_V2_PORT}" | sed 's%/%%g' | awk -F: '{ print $3 }'`
 fi
 
+if [ ! -z "${ACME_URL}" ]; then
+cat>/etc/apache2/conf-available/acme.conf<<EOF
+ProxyPass /.well-known/acme-challenge ${ACME_URL}/.well-known/acme-challenge/
+ProxyPassReverse /.well-known/acme-challenge ${ACME_URL}/.well-known/acme-challenge/
+EOF
+a2enconf acme
+fi
+
+cat>/etc/apache2/sites-available/default.conf<<EOF
+<VirtualHost *:80>
+       ServerAdmin noc@sunet.se
+       ServerName ${PUBLIC_HOSTNAME}
+       Header set Host "${PUBLIC_HOSTNAME}"
+       RequestHeader set X-Forwarded-Proto "http"
+       ProxyRequests On
+       AddDefaultCharset utf-8
+       ErrorLog /var/log/apache2/error.log
+       LogLevel warn
+       CustomLog /var/log/apache2/access.log combined
+       ServerSignature off
+       AddDefaultCharset utf-8
+       ProxyPreserveHost  On
+       ProxyRequests      Off
+       ProxyPass          /v2  http://${V2_IP}:${V2_PORT}/v2
+       ProxyPassReverse   /v2  http://${V2_IP}:${V2_PORT}/v2
+       <Location />
+          Order deny,allow
+          Allow from all
+          <RequireAll>
+             Require method GET
+          </RequireAll>
+       </Location>
+</VirtualHost>
+EOF
+
 KEYDIR=/etc/ssl
 mkdir -p $KEYDIR
 export KEYDIR
@@ -50,7 +85,7 @@ ServerName ${PUBLIC_HOSTNAME}
         SSLVerifyDepth 1
         DocumentRoot /var/www/
 
-        ServerAdmin noc@nordu.net
+        ServerAdmin noc@sunet.se
 
         Header set Host "${PUBLIC_HOSTNAME}"
         RequestHeader set X-Forwarded-Proto "https"
@@ -86,6 +121,7 @@ ServerName ${PUBLIC_HOSTNAME}
 </VirtualHost>
 EOF
 
+cat /etc/apache2/sites-available/default.conf
 cat /etc/apache2/sites-available/default-ssl.conf
 
 a2ensite default
