@@ -34,19 +34,6 @@ elif [ -f "$KEYDIR/certs/chain.pem" ]; then
    CHAINSPEC="SSLCertificateChainFile $KEYDIR/certs/chain.pem"
 fi
 
-
-cat>/etc/apache2/sites-available/default.conf<<EOF
-<VirtualHost *:80>
-       ServerAdmin noc@sunet.se
-       ServerName ${PUBLIC_HOSTNAME}
-       DocumentRoot /var/www/
-
-       RewriteEngine On
-       RewriteCond %{HTTPS} off
-       RewriteRule !_lvs.txt$ https://%{HTTP_HOST}%{REQUEST_URI}
-</VirtualHost>
-EOF
-
 cat>/etc/apache2/sites-available/default-ssl.conf<<EOF
 ServerName ${PUBLIC_HOSTNAME}
 <VirtualHost *:443>
@@ -99,7 +86,6 @@ ServerName ${PUBLIC_HOSTNAME}
 </VirtualHost>
 EOF
 
-cat /etc/apache2/sites-available/default.conf
 cat /etc/apache2/sites-available/default-ssl.conf
 
 a2ensite default
