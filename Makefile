@@ -1,12 +1,15 @@
 VERSION=latest
 NAME=registry-auth
 NO_CACHE=--no-cache=true
+PULL=
 
 all: build push
 build:
-	docker build $(NO_CACHE) -t $(NAME):$(VERSION) -t docker.sunet.se/$(NAME):$(VERSION) .
+	docker build $(PULL) $(NO_CACHE) -t $(NAME):$(VERSION) -t docker.sunet.se/$(NAME):$(VERSION) .
 update: NO_CACHE=
 update: build
+pull:
+	$(eval PULL=--pull)
 push:
 	docker push docker.sunet.se/$(NAME):$(VERSION)
 stable:
