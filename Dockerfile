@@ -12,4 +12,6 @@ WORKDIR /
 
 EXPOSE 443
 
+ENV SERVER_NAME docker.example.com
+
 CMD ["bash", "/start.sh"]
