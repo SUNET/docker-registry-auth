@@ -1,2 +1,2 @@
 triggers:
-    cron: @daily
+    cron: "@daily"
