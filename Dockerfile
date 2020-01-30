@@ -13,5 +13,7 @@ WORKDIR /
 EXPOSE 443
 
 ENV SERVER_NAME docker.example.com
+ENV SSLVerifyDepth 1
+ENV PROXY_TARGET http://registry:5000
 
 CMD ["bash", "/start.sh"]
