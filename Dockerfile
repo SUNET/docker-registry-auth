@@ -1,4 +1,4 @@
-FROM debian:stable
+FROM debian:bullseye
 
 # Copying the Dockerfile to the image as documentation
 COPY Dockerfile /
