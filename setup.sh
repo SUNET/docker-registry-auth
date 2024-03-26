@@ -6,7 +6,7 @@ set -x
 export DEBIAN_FRONTEND noninteractive
 
 # Use the mirror hosted within SUNET in Sweden
-/bin/sed -i s/deb.debian.org/ftp.se.debian.org/g /etc/apt/sources.list.d/debian.sources
+/bin/sed -i 's#deb.debian.org/debian$#ftp.se.debian.org/debian#' /etc/apt/sources.list.d/debian.sources
 
 # Update the image and install common tools for debugging
 # as well as packages needed for this image.
